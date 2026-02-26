@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.db.session import get_db
 from app.models.user import User
 from app.schemas.user import UserCreate, UserOut
-
+from app.core.security import hash_password
 router = APIRouter(prefix="/users", tags=["Users"])
 
 
@@ -16,10 +16,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    #LATER  plain password for now (we hash later during auth step)
+    #Done  plain password for now (we hash later during auth step)
     new_user = User(
         email=user.email,
-        hashed_password=user.password
+        hashed_password=hash_password(user.password)
     )
 
     db.add(new_user)
