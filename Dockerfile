@@ -22,7 +22,8 @@ RUN chmod +x scripts/entrypoint.sh
 
 EXPOSE 8000
 
-ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+# Using CMD instead of ENTRYPOINT so it can be easily overridden for testing
+CMD ["/app/scripts/entrypoint.sh"]
 
 # Local Postgres (Docker)
 # docker-compose up --build

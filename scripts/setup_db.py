@@ -19,21 +19,25 @@ def setup_database():
     engine = create_engine(database_url)
     
     # 1. Drop existing tables and types
-    logger.info("Dropping existing tables and types (CASCADE)...")
-    drop_sql = """
-    DROP TABLE IF EXISTS tasks CASCADE;
-    DROP TABLE IF EXISTS users CASCADE;
-    DROP TYPE IF EXISTS task_status CASCADE;
-    """
-    
-    with engine.connect() as conn:
-        with conn.begin():
-            try:
-                conn.execute(text(drop_sql))
-                logger.info("Cleanup complete.")
-            except Exception as e:
-                logger.error(f"Error during cleanup: {e}")
-                exit(1)
+    # Skip complex cleanup for in-memory SQLite (tests)
+    if engine.url.drivername == "sqlite":
+        logger.info("Skipping cleanup for SQLite.")
+    else:
+        logger.info("Dropping existing tables and types (CASCADE)...")
+        drop_sql = """
+        DROP TABLE IF EXISTS tasks CASCADE;
+        DROP TABLE IF EXISTS users CASCADE;
+        DROP TYPE IF EXISTS task_status CASCADE;
+        """
+        
+        with engine.connect() as conn:
+            with conn.begin():
+                try:
+                    conn.execute(text(drop_sql))
+                    logger.info("Cleanup complete.")
+                except Exception as e:
+                    logger.error(f"Error during cleanup: {e}")
+                    exit(1)
 
     # 2. Run schema.sql
     schema_path = os.path.join("db", "schema.sql")

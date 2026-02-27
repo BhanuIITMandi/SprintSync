@@ -52,8 +52,17 @@ def client():
 def auth_token(client):
     """Register a user and return a valid JWT token."""
     client.post("/users/", json={"email": "testuser@example.com", "password": "testpass123"})
-    resp = client.post("/auth/login", json={"email": "testuser@example.com", "password": "testpass123"})
-    return resp.json()["access_token"]
+    
+    # OAuth2PasswordRequestForm expects form-data with 'username' and 'password'
+    login_resp = client.post(
+        "/auth/login", 
+        data={"username": "testuser@example.com", "password": "testpass123"}
+    )
+    
+    if login_resp.status_code != 200:
+        raise Exception(f"Login failed in test setup: {login_resp.text}")
+        
+    return login_resp.json()["access_token"]
 
 
 @pytest.fixture
