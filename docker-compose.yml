@@ -20,18 +20,23 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
+    # Only start local DB if DATABASE_URL in .env points to 'db' or 'localhost'
+    # By default, we keep it here but the app will point where .env says.
 
   app:
     build: .
     container_name: sprintsync_app
+    # Note: If using cloud DB, this 'depends_on' might wait for a local DB that isn't being used.
+    # But it's safer to keep for local dev flow.
     depends_on:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql://postgres:password@db:5432/sprintsync
+      # Use the DATABASE_URL from .env file directly. 
+      # Docker-compose automatically loads .env into environment variables.
+      DATABASE_URL: ${DATABASE_URL}
       SECRET_KEY: ${SECRET_KEY:-super-secret-key}
       USE_AI_STUB: ${USE_AI_STUB:-true}
-      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
     ports:
       - "8000:8000"
