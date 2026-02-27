@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Literal
 from sqlalchemy.orm import Session
+import google.generativeai as genai
 
 from app.db.session import get_db
 from app.models.task import Task
@@ -67,76 +68,46 @@ def _stub_daily_plan(user: User, tasks: list[Task]) -> str:
 
 # --------------- live LLM call ---------------
 
+def _get_gemini_model():
+    api_key = os.getenv("GOOGLE_API_KEY", "")
+    if not api_key:
+        raise ValueError("GOOGLE_API_KEY not set")
+    genai.configure(api_key=api_key)
+    return genai.GenerativeModel('gemini-1.5-flash')
+
+
 async def _llm_draft_description(title: str) -> str:
-    """Call OpenAI-compatible API to draft a task description."""
-    import httpx
-
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
-
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{base_url}/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}"},
-            json={
-                "model": model,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a concise project-management assistant. "
-                                   "Given a short task title, produce a clear task description "
-                                   "with objective, acceptance criteria, and estimated effort.",
-                    },
-                    {"role": "user", "content": f"Draft a task description for: {title}"},
-                ],
-                "max_tokens": 300,
-                "temperature": 0.7,
-            },
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        return data["choices"][0]["message"]["content"]
+    """Call Gemini API to draft a task description."""
+    model = _get_gemini_model()
+    
+    prompt = (
+        "You are a concise project-management assistant. "
+        f"Draft a clear task description for: {title}. "
+        "Include objective, acceptance criteria, and estimated effort."
+    )
+    
+    response = await model.generate_content_async(prompt)
+    return response.text
 
 
 async def _llm_daily_plan(user: User, tasks: list[Task]) -> str:
-    """Call OpenAI-compatible API to generate a daily plan."""
-    import httpx
-
-    api_key = os.getenv("OPENAI_API_KEY", "")
-    base_url = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
-    model = os.getenv("OPENAI_MODEL", "gpt-3.5-turbo")
+    """Call Gemini API to generate a daily plan."""
+    model = _get_gemini_model()
 
     task_summary = "\n".join(
         f"- {t.title} [status={t.status}, minutes={t.total_minutes}]"
         for t in tasks
     )
 
-    async with httpx.AsyncClient(timeout=30) as client:
-        resp = await client.post(
-            f"{base_url}/chat/completions",
-            headers={"Authorization": f"Bearer {api_key}"},
-            json={
-                "model": model,
-                "messages": [
-                    {
-                        "role": "system",
-                        "content": "You are a concise project-management assistant. "
-                                   "Given a list of tasks, create a focused daily plan "
-                                   "prioritising in-progress work, then TODO items.",
-                    },
-                    {
-                        "role": "user",
-                        "content": f"Create a daily plan for these tasks:\n{task_summary}",
-                    },
-                ],
-                "max_tokens": 400,
-                "temperature": 0.7,
-            },
-        )
-        resp.raise_for_status()
-        data = resp.json()
-        return data["choices"][0]["message"]["content"]
+    prompt = (
+        "You are a concise project-management assistant. "
+        "Given the following list of tasks, create a focused daily plan "
+        "prioritising in-progress work, then TODO items.\n\n"
+        f"Tasks:\n{task_summary}"
+    )
+
+    response = await model.generate_content_async(prompt)
+    return response.text
 
 
 # --------------- endpoint ---------------
@@ -145,7 +116,7 @@ def _use_stub() -> bool:
     """Return True when we should use the deterministic stub."""
     if os.getenv("USE_AI_STUB", "").lower() in ("true", "1", "yes"):
         return True
-    if not os.getenv("OPENAI_API_KEY"):
+    if not os.getenv("GOOGLE_API_KEY"):
         return True
     return False
 

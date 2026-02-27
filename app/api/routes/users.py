@@ -16,10 +16,10 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    #Done  plain password for now (we hash later during auth step)
     new_user = User(
         email=user.email,
-        hashed_password=hash_password(user.password)
+        hashed_password=hash_password(user.password),
+        skills=user.skills
     )
 
     db.add(new_user)
