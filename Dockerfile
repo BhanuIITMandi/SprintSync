@@ -23,3 +23,9 @@ RUN chmod +x scripts/entrypoint.sh
 EXPOSE 8000
 
 ENTRYPOINT ["/app/scripts/entrypoint.sh"]
+
+# Local Postgres (Docker)
+# docker-compose up --build
+
+# Cloud Postgres (Aiven)
+# docker build -t sprintsync-app . && docker run -it --rm -p 8000:8000 --env-file .env sprintsync-app
