@@ -14,8 +14,10 @@ class Task(Base):
     total_minutes = Column(Integer, default=0)
 
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"))
+    assigned_to = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
 
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
-    user = relationship("User")
+    owner = relationship("User", foreign_keys=[user_id])
+    assignee = relationship("User", foreign_keys=[assigned_to])

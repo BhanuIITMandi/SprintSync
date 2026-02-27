@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS tasks (
     status task_status DEFAULT 'TODO',
     total_minutes INT DEFAULT 0,
     user_id INT REFERENCES users(id) ON DELETE CASCADE,
+    assigned_to INT REFERENCES users(id) ON DELETE SET NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

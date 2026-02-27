@@ -8,6 +8,8 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # copy project
 COPY app ./app
+COPY db  ./db
+COPY tests ./tests
 
 EXPOSE 8000
 
