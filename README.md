@@ -82,7 +82,7 @@ Uses **Gemini Text Embeddings** (`models/gemini-embedding-001`) to matching task
 - **Workload-aware:** Penalizes scores for users who are already overloaded with `TODO` or `IN_PROGRESS` tasks.
 
 ### 🧠 Gemini AI Integration
-The planning features are powered by `gemini-1.5-flash`:
+The planning features are powered by `gemini-2.5-flash-lite`:
 - **Draft Description:** Generate detailed tasks from a simple title.
 - **Daily Plan:** Synthesize a coherent plan from your current task list.
 
@@ -121,7 +121,6 @@ The database is seeded with 5 users with specific skills:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `DATABASE_URL` | — | PostgreSQL connection string |
-| `SECRET_KEY` | `super-secret-key` | JWT signing key |
 | `USE_AI_STUB` | `true` | Use deterministic stubs instead of Gemini calls |
 | `GOOGLE_API_KEY` | — | Google Gemini API key (Required for AI features) |
 
