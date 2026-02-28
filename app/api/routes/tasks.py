@@ -163,7 +163,7 @@ async def get_embedding(text: str):
         return [0.0] * 768
     genai.configure(api_key=api_key)
     result = await genai.embed_content_async(
-        model="models/gemini-embedding-001",
+        model="models/text-embedding-004",
         content=text,
         task_type="retrieval_document"
     )

@@ -73,7 +73,8 @@ def _get_gemini_model():
     if not api_key:
         raise ValueError("GOOGLE_API_KEY not set")
     genai.configure(api_key=api_key)
-    return genai.GenerativeModel('gemini-1.5-flash')
+    # Using 'gemini-2.0-flash' which is verified as available
+    return genai.GenerativeModel('gemini-2.0-flash')
 
 
 async def _llm_draft_description(title: str) -> str:
